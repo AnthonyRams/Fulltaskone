@@ -1,0 +1,108 @@
+
+
+#Display a list of options for users to choose from
+Write-Host "Please choose from one of the following options"
+Write-Host "Option 1 - Files with .log extension will be listed and written to DailyLog.txt"
+Write-Host "Option 2 - List files in the Requirements1 folder in tabular format and sorted in ascending alphabestical order, output will be to a new file names C916contents.txt"
+Write-Host "Option 3 - List current CPU and Memory usage"
+Write-Host "Option 4 - List running processes, ordered by decending virtual size"
+Write-Host "Option 5 - Quit"
+
+
+#A loop so the user can continuously choose and option until pressing 5 to exit
+while ($true) {
+   $user_option = Read-Host "What is your option?"
+    switch ($user_option) {
+        "1" { 
+            # Get all files from the directory (including hidden files)
+$allFiles = Get-ChildItem -Path "C:\Source\Requirements1" -File -Force
+
+# Filter files for .log files only
+$Requirements1LogFiles = $allFiles | Where-Object { $_.Extension -eq ".log" }
+
+# Display all matching .log files
+Write-Output $Requirements1LogFiles
+
+# Define the output path for DailyLog.txt
+$OutputToDailyLog = "C:\Source\Requirements1\DailyLog.txt"
+
+# Check if DailyLog.txt exists. If not, create it.
+if (-not (Test-Path -Path $OutputToDailyLog)) {
+    New-Item -Path $OutputToDailyLog -ItemType File
+}
+
+# Write all log file paths to DailyLog.txt (append mode to avoid overwriting)
+$Requirements1LogFiles | ForEach-Object { $_.FullName } | Out-File -FilePath $OutputToDailyLog -Append
+
+Write-Host "All .log files successfully written to DailyLog.txt"
+        }
+            
+        
+
+         "2" {
+
+            
+            # Get all files from Requirements1 folder
+            $RequirementAllFiles = Get-ChildItem -Path "C:\Source\Requirements1" -File
+
+            # Sort files in alphabetical order by Name
+            $OrderedFiles = $RequirementAllFiles | Sort-Object Name
+
+            # Write all files to C916contents.txt (full file names)
+            $OutputToC9146 = "C:\Source\Requirements1\C916contents.txt"
+            $RequirementAllFiles | ForEach-Object { $_.FullName } | Out-File -FilePath $OutputToC9146
+
+            # Display files in a tabular format
+            $OrderedFiles | Format-Table Name, Length, LastWriteTime
+
+            Write-Host "All files successfully written to C916contents.txt"
+            
+         }
+
+         "3"{
+            #Disply the current CPU and Memory usage
+
+            $CpuUsage = Get-CimInstance -Class Win32_Processor | Select-Object -ExpandProperty LoadPercentage
+            $MemoryUsage = Get-CimInstance -Class Win32_OperatingSystem | Select-Object -Property FreePhysicalMemory, TotalVisibleMemorySize
+
+            Write-Host "CPU Usage: $cpuUsage%"
+            Write-Host "Free Physical Memory: $($memoryUsage.FreePhysicalMemory) KB"
+            Write-Host "Total Visible Memory: $($memoryUsage.TotalVisibleMemorySize) KB"
+
+
+
+
+
+         }
+
+         "4"{
+
+            #List all running proccesses, sort by size and display in grid format
+            Get-Process | Sort-Object -Property VM | Format-Table -Autosize
+
+
+         }
+
+         "5"{
+            #End the loop
+            Write-Host "Now Ending Program......."
+            Write-Host "Program Successfully Ended."
+            break
+         }
+
+
+
+        Default {
+            #Disply message showing user to only input valid options
+            Write-Host "Oh no! Please Choose A Valid Option 1 Through 5"
+        }
+    }
+    
+}
+
+try {
+   #Applied exception handling for OutOfMemoryException
+}
+catch [System.OutOfMemoryException] {
+   Write-Host "Oh no! An OutOfMemoryException!"
+}
